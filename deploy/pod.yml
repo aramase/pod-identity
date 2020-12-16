@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: httpbin-pod
+  labels:
+    app: httpbin
+spec:
+  initContainers:
+  - name: init-networking
+    image: aramase/proxy-init:v0.0.1
+    imagePullPolicy: Always
+    securityContext:
+      capabilities:
+        add:
+        - NET_ADMIN
+      privileged: true
+  containers:
+  - name: service
+    image: aramase/httpserver
+    ports:
+    - containerPort: 80
+  - name: proxy
+    image: aramase/pod-identity-proxy:v0.0.1
+    imagePullPolicy: Always
+    ports:
+    - containerPort: 8000
+  - name: client
+    image: alpine
+    imagePullPolicy: IfNotPresent
+    ports:
+    - containerPort: 8080
+    command:
+      - /bin/sh
+      - -c
+      - "while true; do echo hi; sleep 10; done"
